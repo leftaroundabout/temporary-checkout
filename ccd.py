@@ -35,31 +35,31 @@ if __name__ == "__main__":
       if repoq.get('origin-name') is None:
         repoq['origin-name'] = 'origin'
 
-      # print repoq
-      # sys.exit(0)
-
-      os.chdir(path.dirname(lntgt))
-      origin = path.abspath(repoq['origin'])
-
-      latest = subprocess.check_output([ 'git'
-                                       , '-C', origin
-                                       , 'for-each-ref', '--sort=-committerdate'
-                                       , 'refs/heads/', '--format=%(refname:short)' ]
-                                      ).split('\n')[0]
-      
-      print "Checking out latest branch:", latest
-
+      origin = repoq['origin']
+      if '@' not in origin: origin = path.abspath(origin)
+       
       os.chdir(ccdTmpdir)
 
-      if origin[-4:]=='.git':
+      if origin[-4:]=='.git' and '@' not in origin:
+        latest = subprocess.check_output([ 'git'
+                                         , '-C', origin
+                                         , 'for-each-ref', '--sort=-committerdate'
+                                         , 'refs/heads/', '--format=%(refname:short)' ]
+                                        ).split('\n')[0]
+        
+        print "Checking out latest branch:", latest
+       
         subprocess.call([ 'git', 'clone', origin, '-b', latest, repoq['basename'] ])
+        os.chdir(lntgt)
+
       else:
-        subprocess.call([ 'cp', '-r', origin, repoq['basename'] ])
-        subprocess.call([ 'git', 'remote', 'add', origin, repoq['origin-name'] ])
+        print 'scp', '-r', origin, repoq['basename']
+        subprocess.call([ 'scp', '-r', origin, repoq['basename'] ])
+        os.chdir(lntgt)
+        subprocess.call([ 'git', 'remote', 'add', repoq['origin-name'], origin ])
 
         
 
-      os.chdir(lntgt)
       subprocess.call([ 'git-tmp-commit', '-r' ])
 
       onlineRemotes = repoq['online-remotes']

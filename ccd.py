@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
       subprocess.call([ 'git-tmp-commit', '-r' ])
 
-      onlineRemotes = repoq['online-remotes']
+      onlineRemotes = repoq.get('online-remotes')
       if onlineRemotes is not None:
         for r, rurl in onlineRemotes.items():
           subprocess.call([ 'git', 'remote', 'add', r, rurl ])

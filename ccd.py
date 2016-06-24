@@ -28,6 +28,11 @@ if __name__ == "__main__":
       sys.exit(0)
    else:
       lntgt = sys.argv[1]
+      if lntgt == '--purge' and len(sys.argv) > 2:
+         doPurge = True
+         lntgt = sys.argv[2]
+      else:
+         doPurge = False
 
       reponame = path.basename(lntgt)
       
@@ -55,6 +60,11 @@ if __name__ == "__main__":
       if '@' not in origin: origin = path.abspath(origin)
        
       os.chdir(ccdTmpdir)
+
+      if doPurge:
+        print ("Purging checkout of repo associated with "+lntgt)
+        subprocess.call([ 'rm', '-rf', repoq['basename'] ])
+        sys.exit(0)
 
       if origin[-4:]=='.git' and '@' not in origin:
         latest = subprocess.check_output([ 'git'

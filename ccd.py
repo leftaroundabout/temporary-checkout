@@ -95,7 +95,9 @@ if __name__ == "__main__":
 
       try:
         # The user shell, running inside the project dir.
-        shell = subprocess.Popen("/bin/bash -c 'cd "+lntgt+"; /bin/bash'", shell=True)
+        shell = subprocess.Popen("/bin/bash -c 'cd "+lntgt
+                              +"; env TTYTITLE='"+repoq['basename']
+                              +"' /bin/bash'", shell=True)
         
         def terminateShell(signal, frame):
            shell.terminate()

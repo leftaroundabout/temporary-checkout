@@ -32,14 +32,18 @@ if __name__ == "__main__":
    tempbranch = re.match('temporary-commits/(.*)', branchn)
 
    if tempbranch:
-    if '-r' in sys.argv:
-     tbn = tempbranch.group(1)
-     print('Coming from temporary branch at '+tbn)
-     origBranch, tmpDate = re.match('(.*?)/([0-9]*-[0-9]*-[0-9]*.[0-9]*-[0-9]*-[0-9]*)$', tbn).groups()
-     subprocess.call([ 'git', 'checkout', '--detach' ])
-     subprocess.call([ 'git', 'reset', '--soft', 'HEAD^' ])
-     subprocess.call([ 'git', 'checkout', '-b', origBranch ])
-     subprocess.call([ 'git', 'reset' ])
+     if '-r' in sys.argv:
+       tbn = tempbranch.group(1)
+       print('Coming from temporary branch at '+tbn)
+       origBranch, tmpDate = re.match('(.*?)/([0-9]*-[0-9]*-[0-9]*.[0-9]*-[0-9]*-[0-9]*)$', tbn).groups()
+       subprocess.call([ 'git', 'checkout', '--detach' ])
+       if subprocess.call([ 'git', 'rev-parse', '--verify', origBranch ]) > 0:
+         subprocess.call([ 'git', 'reset', '--soft', 'HEAD^' ])
+         subprocess.call([ 'git', 'checkout', '-b', origBranch ])
+       else:
+         subprocess.call([ 'git', 'reset', '--soft', origBranch ])
+         subprocess.call([ 'git', 'checkout', origBranch ])
+       subprocess.call([ 'git', 'reset' ])
 
    else:
     if '-r' not in sys.argv:

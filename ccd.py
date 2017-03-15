@@ -66,13 +66,23 @@ if __name__ == "__main__":
         subprocess.call([ 'rm', '-rf', repoq['basename'] ])
         sys.exit(0)
 
-      if origin[-4:]=='.git' and '@' not in origin:
+      if (origin[-4:]=='.git'):
+        if '@' in origin:
+          mirror = ccdTmpdir+'/.mirror.git'
+          subprocess.call([ 'git', 'clone', '--mirror', origin, mirror ])
+
+        else:
+          mirror = origin
+        
         latest = subprocess.check_output([ 'git'
-                                         , '-C', origin
+                                         , '-C', mirror
                                          , 'for-each-ref', '--sort=-committerdate'
                                          , 'refs/heads/', '--format=%(refname:short)' ]
                                         ).split('\n')[0]
         
+        if mirror != origin:
+          subprocess.call([ 'rm', '-rf', mirror ])
+
         print "Checking out latest branch:", latest
        
         subprocess.call([ 'git', 'clone', origin, '-b', latest, repoq['basename'] ])

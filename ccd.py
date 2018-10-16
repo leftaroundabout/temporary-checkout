@@ -83,9 +83,13 @@ if __name__ == "__main__":
         if mirror != origin:
           subprocess.call([ 'rm', '-rf', mirror ])
 
-        print "Checking out latest branch:", latest
-       
-        subprocess.call([ 'git', 'clone', origin, '-b', latest, repoq['basename'] ])
+        if latest=="":
+          print "Cloning empty repository:", origin
+          subprocess.call([ 'git', 'clone', origin, repoq['basename'] ])
+        else:
+          print "Checking out latest branch:", latest
+          subprocess.call([ 'git', 'clone', origin, '-b', latest, repoq['basename'] ])
+
         os.chdir(lntgt)
 
       else:

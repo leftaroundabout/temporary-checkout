@@ -30,6 +30,7 @@ if __name__ == "__main__":
                                      , 'HEAD']
                        ).split('\n') [0]
    tempbranch = re.match('temporary-commits/(.*)', branchn)
+   print(tempbranch)
 
    if tempbranch:
      if '-r' in sys.argv:

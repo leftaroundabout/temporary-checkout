@@ -65,9 +65,11 @@ if __name__ == "__main__":
       if onlineRemotes is None:
         onlineRemotes = []
        
+      workdirRepo = repoq['basename']
+      
       if doPurge:
         print ("Purging checkout of repo associated with "+lntgt)
-        subprocess.call([ 'rm', '-rf', repoq['basename'] ])
+        subprocess.call([ 'rm', '-rf', workdirRepo ])
         sys.exit(0)
 
       if (origin[-4:]=='.git'):
@@ -106,22 +108,22 @@ if __name__ == "__main__":
         
         if latest=="":
           print "Cloning empty repository:", origin
-          subprocess.call([ 'git', 'clone', origin, repoq['basename'] ])
+          subprocess.call([ 'git', 'clone', origin, workdirRepo ])
         else:
           print "Checking out latest branch:", latest
-          subprocess.call([ 'git', 'clone', mirror, '-b', latest, repoq['basename'] ])
+          subprocess.call([ 'git', 'clone', mirror, '-b', latest, workdirRepo ])
 
         if mirror != origin:
-          subprocess.call([ 'git', '-C', repoq['basename'], 'remote', 'rm', 'origin' ])
-          subprocess.call([ 'git', '-C', repoq['basename'], 'remote', 'add'
+          subprocess.call([ 'git', '-C', workdirRepo, 'remote', 'rm', 'origin' ])
+          subprocess.call([ 'git', '-C', workdirRepo, 'remote', 'add'
                             , 'origin', origin ])
           subprocess.call([ 'rm', '-rf', mirror ])
 
         os.chdir(lntgt)
 
       else:
-        print 'scp', '-r', origin, repoq['basename']
-        subprocess.call([ 'scp', '-r', origin, repoq['basename'] ])
+        print 'scp', '-r', origin, workdirRepo
+        subprocess.call([ 'scp', '-r', origin, workdirRepo ])
         os.chdir(lntgt)
         subprocess.call([ 'git', 'remote', 'add', repoq['origin-name'], origin ])
 
@@ -135,7 +137,7 @@ if __name__ == "__main__":
       try:
         # The user shell, running inside the project dir.
         shell = subprocess.Popen("/bin/bash -c 'cd "+lntgt
-                              +"; env TTYTITLE='"+repoq['basename']
+                              +"; env TTYTITLE='"+workdirRepo
                               +"' /bin/bash'", shell=True)
         
         def terminateShell(signal, frame):

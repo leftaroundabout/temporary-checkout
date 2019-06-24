@@ -61,18 +61,42 @@ if __name__ == "__main__":
        
       os.chdir(ccdTmpdir)
 
+      onlineRemotes = repoq.get('online-remotes')
+      if onlineRemotes is None:
+        onlineRemotes = []
+       
       if doPurge:
         print ("Purging checkout of repo associated with "+lntgt)
         subprocess.call([ 'rm', '-rf', repoq['basename'] ])
         sys.exit(0)
 
       if (origin[-4:]=='.git'):
+        mirror = ccdTmpdir+'/.mirror.git'
         if '@' in origin:
-          mirror = ccdTmpdir+'/.mirror.git'
           subprocess.call([ 'git', 'clone', '--mirror', origin, mirror ])
 
         else:
-          mirror = origin
+          try:
+            origin_is_existing_bareRepo = (subprocess.check_output([ 'git'
+                            , '-C', origin
+                            , 'rev-parse', '--is-bare-repository']
+                            ) == 'true\n')
+          except subprocess.CalledProcessError, e:
+            origin_is_existing_bareRepo = False
+           
+          if origin_is_existing_bareRepo:
+            mirror = origin
+          else:
+            for r, rurl in onlineRemotes.items():
+              if subprocess.call([ 'git'
+                         , 'clone', '--bare'
+                         , rurl, origin ]) == 0:
+                print "Retrieving repo from remote:", rurl
+                subprocess.call([ 'git', 'clone', '--mirror', rurl, mirror ])
+                break
+            else:
+              raise RuntimeError('Neither the origin nor any remotes can be reached.')
+              
         
         latest = subprocess.check_output([ 'git'
                                          , '-C', mirror
@@ -80,15 +104,18 @@ if __name__ == "__main__":
                                          , 'refs/heads/', '--format=%(refname:short)' ]
                                         ).split('\n')[0]
         
-        if mirror != origin:
-          subprocess.call([ 'rm', '-rf', mirror ])
-
         if latest=="":
           print "Cloning empty repository:", origin
           subprocess.call([ 'git', 'clone', origin, repoq['basename'] ])
         else:
           print "Checking out latest branch:", latest
-          subprocess.call([ 'git', 'clone', origin, '-b', latest, repoq['basename'] ])
+          subprocess.call([ 'git', 'clone', mirror, '-b', latest, repoq['basename'] ])
+
+        if mirror != origin:
+          subprocess.call([ 'git', '-C', repoq['basename'], 'remote', 'rm', 'origin' ])
+          subprocess.call([ 'git', '-C', repoq['basename'], 'remote', 'add'
+                            , 'origin', origin ])
+          subprocess.call([ 'rm', '-rf', mirror ])
 
         os.chdir(lntgt)
 
@@ -102,10 +129,8 @@ if __name__ == "__main__":
 
       subprocess.call([ 'git-tmp-commit', '-r' ])
 
-      onlineRemotes = repoq.get('online-remotes')
-      if onlineRemotes is not None:
-        for r, rurl in onlineRemotes.items():
-          subprocess.call([ 'git', 'remote', 'add', r, rurl ])
+      for r, rurl in onlineRemotes.items():
+        subprocess.call([ 'git', 'remote', 'add', r, rurl ])
 
       try:
         # The user shell, running inside the project dir.

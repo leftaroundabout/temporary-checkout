@@ -135,6 +135,8 @@ if __name__ == "__main__":
       for r, rurl in onlineRemotes.items():
         subprocess.call([ 'git', 'remote', 'add', r, rurl ])
 
+      subprocess.call([ 'git', 'submodule', 'update', '--init' ])
+
       try:
         # The user shell, running inside the project dir.
         shell = subprocess.Popen("/bin/bash -c 'cd "+lntgt

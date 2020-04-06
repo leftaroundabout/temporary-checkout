@@ -100,11 +100,12 @@ if __name__ == "__main__":
               raise RuntimeError('Neither the origin nor any remotes can be reached.')
               
         
-        latest = subprocess.check_output([ 'git'
-                                         , '-C', mirror
-                                         , 'for-each-ref', '--sort=-committerdate'
-                                         , 'refs/heads/', '--format=%(refname:short)' ]
-                                        ).split('\n')[0]
+        branches = subprocess.check_output([ 'git'
+                                           , '-C', mirror
+                                           , 'for-each-ref', '--sort=-committerdate'
+                                           , 'refs/heads/', '--format=%(refname:short)' ]
+                                          ).split('\n')
+        latest = filter(lambda branch: "annex" not in branch, branches)[0]
         
         if latest=="":
           print "Cloning empty repository:", origin

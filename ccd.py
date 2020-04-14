@@ -105,7 +105,8 @@ if __name__ == "__main__":
                                            , 'for-each-ref', '--sort=-committerdate'
                                            , 'refs/heads/', '--format=%(refname:short)' ]
                                           ).split('\n')
-        latest = filter(lambda branch: "annex" not in branch, branches)[0]
+        latest = filter( lambda branch: "annex" not in branch and "synced" not in branch
+                       , branches )[0]
         
         if latest=="":
           print "Cloning empty repository:", origin
